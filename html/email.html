@@ -53,7 +53,7 @@
                 htmlData += `<b>Date: ${json.date}</b><br>`;
 
                 htmlData += '<hr><br>';
-                htmlData += json.html;
+                htmlData += (json.html === false) ? json.text : json.html;
                 htmlData += '<hr><br>';
                 
                 for (let i = 0; i < json.attachments.length; i++) {
