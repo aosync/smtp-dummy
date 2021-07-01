@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+    <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script src="node_modules/jquery/dist/jquery.js"></script>
+</head>
+
+<body onload="loadEmail()">
+    <script>
+
+        function getUrlParam(sParam) {
+            let sPageURL = window.location.search.substring(1);
+            let sURLVariables = sPageURL.split('&');
+            for (let i = 0; i < sURLVariables.length; i++) {
+                let sParameterName = sURLVariables[i].split('=');
+                if (sParameterName[0] == sParam) {
+                    return sParameterName[1];
+                }
+            }
+            return undefined;
+        }
+
+        function loadEmail() {
+            let uuid = getUrlParam('uuid');
+            if (uuid == undefined) {
+                document.getElementById('emailBody').innerHTML = 'No uuid provided';
+                return;
+            }
+
+            let http = new XMLHttpRequest();
+            http.open('GET', `/raw_emails/${uuid}.json`);
+
+            http.onreadystatechange = (e) => {
+                console.log(http.responseText);
+                let json = JSON.parse(http.responseText);
+                
+                let htmlData = '';
+
+                htmlData += `<h3><b>${json.subject}</b></h3>`;
+                htmlData += `<b>From: ${json.from.value[0].name} (${json.from.value[0].address})</b><br>`;
+
+                htmlData += '<b>To: ';
+                for (let i = 0; i < json.to.value.length; i++) {
+                    htmlData += `${json.to.value[i].name} (${json.to.value[i].address}) `
+                }
+                htmlData += '</b><br>'
+
+                htmlData += `<b>Date: ${json.date}</b><br>`;
+
+                htmlData += '<hr><br>';
+                htmlData += json.html;
+                htmlData += '<hr><br>';
+                
+                for (let i = 0; i < json.attachments.length; i++) {
+                    htmlData += `<a href="/raw_emails/${uuid}-attch/${json.attachments[i].filename}">${json.attachments[i].filename}</a><br>`;
+                }
+
+                document.getElementById('emailBody').innerHTML = htmlData;
+            }
+
+            http.send();
+        }
+    </script>
+
+    <div class="container" id="emailBody">
+    </div>
+</body>
+
+</html> 
